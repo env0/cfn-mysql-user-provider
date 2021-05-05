@@ -1,0 +1,6 @@
+{
+  "name": "cfn-mysql-user-provider",
+  "version": "0.2.3",
+  "description": "Empty package json to allow importing this package as an npm dependecy",
+  "author": "binxio"
+}
