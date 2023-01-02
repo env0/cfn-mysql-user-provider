@@ -274,7 +274,7 @@ class MySQLUser(ResourceProvider):
         try:
             cursor.execute('select version()')
             version = cursor.fetchone()[0].split('.')
-            return int(version[0]) >= 5 and int(version[1]) >= 7
+            return int(version[0]) > 5 or (int(version[0]) == 5 and int(version[1]) >= 7)
         except Exception as e:
             self.fail('failed to determine database version, {}'.format(e))
             raise e
@@ -286,9 +286,11 @@ class MySQLUser(ResourceProvider):
         cursor = self.connection.cursor()
         try:
             if self.is_5_7_or_higher():
+                log.info('ALTER USER %s IDENTIFIED BY *** ACCOUNT UNLOCK"', self.user)
                 cursor.execute("ALTER USER %s IDENTIFIED BY %s ACCOUNT UNLOCK", [
                     self.user, self.user_password])
             else:
+                log.info('SET PASSWORD FOR %s = ***', self.user)
                 cursor.execute("SET PASSWORD FOR %s = %s", [
                     self.user, mysql_password(self.user_password)])
         finally:
