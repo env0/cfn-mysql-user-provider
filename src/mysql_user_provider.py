@@ -199,7 +199,7 @@ class MySQLUser(ResourceProvider):
 
     @property
     def allow_update(self):
-        return self.url == self.physical_resource_id
+        return True
 
     @property
     def url(self):
