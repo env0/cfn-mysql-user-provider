@@ -4,7 +4,6 @@ import os
 import random
 import string
 import boto3
-from hashlib import sha1
 import mysql.connector
 from botocore.exceptions import ClientError
 from cfn_resource_provider import ResourceProvider
@@ -99,18 +98,6 @@ request_schema = {
         }
     }
 }
-
-
-def mysql_password(passwd):
-    """
-    Hash string twice with SHA1 and return uppercase hex digest,
-    prepended with an asterix.
-
-    This function is identical to the MySQL PASSWORD() function.
-    """
-    pass1 = sha1(passwd.encode('utf-8')).digest()
-    pass2 = sha1(pass1).hexdigest()
-    return "*" + pass2.upper()
 
 
 class MySQLUser(ResourceProvider):
@@ -252,9 +239,9 @@ class MySQLUser(ResourceProvider):
                     cursor.execute("ALTER USER %s ACCOUNT LOCK", [self.user])
                 else:
                     log.info('set random password for %s to disable login', self.user)
-                    cursor.execute("SET PASSWORD FOR %s = %s", [
+                    cursor.execute("SET PASSWORD FOR %s = PASSWORD(%s)", [
                         self.user,
-                        mysql_password(''.join(random.choices(string.ascii_uppercase + string.digits, k=16)))])
+                        ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))])
         finally:
             cursor.close()
 
@@ -289,8 +276,8 @@ class MySQLUser(ResourceProvider):
                 cursor.execute("ALTER USER %s IDENTIFIED BY %s ACCOUNT UNLOCK", [
                     self.user, self.user_password])
             else:
-                cursor.execute("SET PASSWORD FOR %s = %s", [
-                    self.user, mysql_password(self.user_password)])
+                cursor.execute("SET PASSWORD FOR %s = PASSWORD(%s)", [
+                    self.user, self.user_password])
         finally:
             cursor.close()
 
